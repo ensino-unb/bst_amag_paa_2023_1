@@ -232,11 +232,64 @@ Proof.
         ** split; inv H; apply H3.
 Qed.
 
+(*André*) Lemma total_bst_sub_bst : forall (V : Type) (k : key) (v : V) (l r : tree V), BST (T l k v r) -> BST l /\ BST r.
+(*André*) Proof.
+(*André*)   intros. inversion H. split. assumption. assumption.
+(*André*) Admitted.
+
 (** Prove que ao receber uma árvore binária de busca como argumento, a função [insert] gera outra árvore binária de busca. *)
 
 Theorem insert_BST : forall (V : Type) (k : key) (v : V) (t : tree V),
     BST t -> BST (insert k v t).
 Proof.
+(*André*)  intros. induction t.
+(*André*)   - simpl. apply BST_T.
+(*André*)     * simpl. lia.
+(*André*)     * simpl. lia.
+(*André*)     * assumption.
+(*André*)     * assumption.
+(*André*)   - apply total_bst_sub_bst in H. destruct H as (H1, H2).
+              simpl. destruct (k0 >? k) eqn:H'.
+              * apply BST_T.
+                 ** induction t1.
+                  *** simpl. split. apply Nat.ltb_lt in H'. apply H'. lia.
+                  *** simpl. destruct (k1 >? k) eqn:H''.
+                      apply IHt1 in H1. replace (T (insert k v t1_1) k1 v1 t1_2) with (insert k v (T t1_1 k1 v1 t1_2)).
+                      **** admit.
+                      **** simpl. destruct (k1 >? k) eqn:H'''.
+                          ***** reflexivity.
+                          ***** discriminate.
+                      **** destruct (k >? k1) eqn:H''''.
+                          ***** simpl. apply Nat.ltb_ge in H''. apply Nat.ltb_lt in H'''', H'. split. 
+                                ****** lia. 
+                                ****** split.
+                                       ******* inversion H1. rewrite H' in H''''. Preciso juntar H5 com H''''.
+                              replace (y < k0) with (y < k1).
+
+
+                              apply total_bst_sub_bst in H1. destruct H1 as (H3, H4). split.
+                                      ******* 
+  Search " >? ".
+
+Nat.ltb_ge: forall x y : nat, (y >? x) = false <-> y <= x
+Nat.ltb_lt:
+                 ** admit.
+                 ** apply IHt1. apply H1.
+                 ** apply H2.
+              * destruct (k >? k0) eqn:H''.
+                 ** apply BST_T.
+                    *** admit.
+                    *** admit.
+                    *** apply H1.
+                    *** apply IHt2. apply H2.
+                 ** apply BST_T.
+                    *** admit.
+                    *** admit.
+                    *** apply H1.
+                    *** apply H2.
+(*André all of the above*)
+
+
 Admitted.
 
 (** * A correção das funções de busca [lookup] e [bound] *)
