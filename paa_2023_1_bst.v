@@ -232,12 +232,79 @@ Proof.
         ** split; inv H; apply H3.
 Qed.
 
+(* importante *)
 (*André*) Lemma total_bst_sub_bst : forall (V : Type) (k : key) (v : V) (l r : tree V), BST (T l k v r) -> BST l /\ BST r.
 (*André*) Proof.
 (*André*)   intros. inversion H. split. assumption. assumption.
-(*André*) Admitted.
+(*André*) Qed.
+
+
 
 (** Prove que ao receber uma árvore binária de busca como argumento, a função [insert] gera outra árvore binária de busca. *)
+
+
+
+
+(* André *) 
+Lemma bst_insert_left: (* desnecessário *)
+
+forall (V : Type) (k k': key) (v v': V) (l r : tree V), 
+
+BST (T l k v r) -> BST (insert k' v' l) -> k' < k -> BST (T (insert k' v' l) k v r).
+(*André*) 
+Proof.
+Admitted.
+
+(* André *) 
+Lemma bst_insert_right: (* desnecessário *)
+
+forall (V : Type) (k k': key) (v v': V) (l r : tree V), 
+
+BST (T l k v r) -> BST (insert k' v' r) -> k' < k -> BST (T l k' v' (insert k v r)).
+(*André*) Proof.
+Admitted.
+
+Lemma bst_lt: (* desnecessário *)
+
+forall (V : Type) (k k': key) (v v': V) (t : tree V), 
+k' < k -> BST (insert k v t) -> BST (insert k' v' t).
+Proof.
+Admitted.
+
+Lemma bst_irrelevant_value: (* desnecessário *)
+forall (V : Type) (k: key) (v v': V) (t1 t2 : tree V), 
+BST (T t1 k v t2) -> BST (T t1 k v' t2).
+Proof.
+  intros. inversion H. apply BST_T. 
+  - assumption.
+  - assumption.
+  - assumption.
+  - assumption.
+Qed.
+
+
+Lemma gt_total_gt_sub_left:
+forall (V : Type) (k: key) (v: V) (t l r: tree V),
+ForallT (fun (y : key) (_ : V) => y > k) (T l k v r) ->
+ForallT (fun (y : key) (_ : V) => y > k) l.
+Proof.
+Admitted.
+
+Lemma keeps_gt_after_gt_insertion:
+forall (V : Type) (k k0: key) (v: V) (t: tree V),
+ForallT (fun (y : key) (_ : V) => y > k0) t ->
+k > k0 ->
+ForallT (fun (y : key) (_ : V) => y > k0) (insert k v t).
+Proof.
+  intros. induction t.
+  - simpl. lia.
+  - simpl. destruct (k1 >? k) eqn:H'.
+    * apply gt_total_gt_sub_left with (v:=v0) (r:=t2).
+      ** apply t2.
+      ** 
+(*Criar lema auxiliar dizendo que, se todos y da árvore são maiores que k0, então todos de r l são maiores que k0. depois usar em IHt1 e IHt2.
+       *)
+Admitted.
 
 Theorem insert_BST : forall (V : Type) (k : key) (v : V) (t : tree V),
     BST t -> BST (insert k v t).
@@ -248,10 +315,118 @@ Proof.
 (*André*)     * simpl. lia.
 (*André*)     * assumption.
 (*André*)     * assumption.
+            - pose proof H. apply total_bst_sub_bst in H. destruct H as (H1, H2).
+              simpl. destruct (k0 >? k) eqn:H'.
+              * apply bst_insert_left.
+                 ** apply H0.
+                 ** apply IHt1. apply H1.
+                 ** apply Nat.ltb_lt in H'. apply H'.
+              * destruct (k >? k0) eqn:H''.
+                 ** apply BST_T.
+                    *** inversion H0. apply H6.
+                    *** inversion H0. apply keeps_gt_after_gt_insertion.
+                       **** apply H7.
+                       **** apply Nat.ltb_lt in H''. apply H''.                    
+                    *** apply H1.
+                    *** apply IHt2. apply H2.
+                 ** apply BST_T.
+                    *** apply Nat.ltb_nlt in H'. apply Nat.ltb_nlt in H''.
+                        replace k with k0.
+                        inversion H0. apply H6. lia.
+                    *** apply Nat.ltb_nlt in H'. apply Nat.ltb_nlt in H''.
+                        replace k with k0.
+                        inversion H0. apply H7. lia.
+                    *** apply H1.
+                    *** apply H2.
+Qed.
+
+##############################
+
+            - simpl. destruct (k0 >? k) eqn:H'.
+              * apply bst_insert_left. apply H. apply total_bst_sub_bst in H. destruct H as (H1, H2). apply IHt1 in H1. apply H1.
+                apply Nat.ltb_lt in H'. apply H'.
+              * destruct (k >? k0) eqn:H''.
+                  ** apply bst_insert_right. 
+                      *** 
+
+
+apply bst_irrelevant_value with (v:=v0). 
+                          **** apply H.
+                          **** apply Nat.ltb_nlt in H'. apply Nat.ltb_nlt in H''. lia.
+                      *** apply total_bst_sub_bst in H. destruct H as (H1, H2). pose proof H2. apply IHt2 in H2.
+                
+                      *** apply bst_lt with (k:= k) (v:= v).
+                          **** apply Nat.ltb_lt in H''. apply H''.
+                          **** apply IHt2. apply H.
+                      *** apply Nat.ltb_lt in H''. apply H''.
+                  ** apply bst_irrelevant_value with (v:=v0). replace k with k0. 
+                      *** apply H.
+                      *** apply Nat.ltb_nlt in H'. apply Nat.ltb_nlt in H''. lia.
+Qed.
+
+
+
+
+
+
+              * destruct (k >? k0) eqn:H''.
+                  ** apply bst_insert_right. 
+                      *** admit.
+      *** apply total_bst_sub_bst in H. destruct H as (H1, H2). pose proof H2. apply IHt2 in H2.
+                
+                      *** apply bst_lt with (k:= k) (v:= v).
+                          **** apply Nat.ltb_lt in H''. apply H''.
+                          **** apply IHt2. apply H.
+                      *** apply Nat.ltb_lt in H''. apply H''.
+                  ** apply bst_irrelevant_value with (v:=v0). replace k with k0. 
+                      *** apply H.
+                      *** apply Nat.ltb_nlt in H'. apply Nat.ltb_nlt in H''. lia.
+Qed.
+
+
+
+k' < k -> BST (insert k v t) -> BST (insert k' v' t)
+
 (*André*)   - apply total_bst_sub_bst in H. destruct H as (H1, H2).
               simpl. destruct (k0 >? k) eqn:H'.
-              * apply BST_T.
-                 ** induction t1.
+              * apply bst_insert_left.
+                  ** induction t1.
+                  *** simpl. split. apply Nat.ltb_lt in H'. apply H'. lia.
+                  *** simpl. destruct (k1 >? k) eqn:H''.
+                      apply IHt1 in H1. replace (T (insert k v t1_1) k1 v1 t1_2) with (insert k v (T t1_1 k1 v1 t1_2)).
+                      **** 
+                      **** simpl. destruct (k1 >? k) eqn:H'''.
+                          ***** reflexivity.
+                          ***** discriminate.
+                      **** destruct (k >? k1) eqn:H''''.
+                          ***** simpl. apply Nat.ltb_ge in H''. apply Nat.ltb_lt in H'''', H'. split. 
+                                ****** lia. 
+                                ****** split.
+                                       ******* inversion H1. rewrite H' in H''''. admit(* Preciso juntar H5 com H''''. *).
+                                       ******* inversion H1. apply IHt1_2. apply H8. intro. admit.
+                          ***** 
+
+
+                  ** induction t1.
+                    *** simpl. split. apply Nat.ltb_lt in H'. apply H'. lia.
+                    *** simpl. destruct (k1 >? k) eqn:H''.
+                        **** simpl. split.
+                             ***** apply IHt1 in H1. apply BST_T in H1. inversion H1. apply H'' in H0.
+
+
+
+ 
+                        pose proof H1 as H3. pose proof H2 as H4. 
+                        apply IHt1 in H1. apply IHt2 in H2.
+                        apply total_bst_sub_bst in H3. destruct H3 as (H5, H6).
+                        destruct (k1 >? k) eqn:H7.
+                        **** simpl. split.
+                             ***** apply Nat.ltb_lt in H7. apply Nat.ltb_lt in H'. lia.
+             
+
+
+
+               ** induction t1.
                   *** simpl. split. apply Nat.ltb_lt in H'. apply H'. lia.
                   *** simpl. destruct (k1 >? k) eqn:H''.
                       apply IHt1 in H1. replace (T (insert k v t1_1) k1 v1 t1_2) with (insert k v (T t1_1 k1 v1 t1_2)).
@@ -263,16 +438,40 @@ Proof.
                           ***** simpl. apply Nat.ltb_ge in H''. apply Nat.ltb_lt in H'''', H'. split. 
                                 ****** lia. 
                                 ****** split.
-                                       ******* inversion H1. rewrite H' in H''''. Preciso juntar H5 com H''''.
-                              replace (y < k0) with (y < k1).
+                                       ******* inversion H1. rewrite H' in H''''. admit(* Preciso juntar H5 com H''''. *).
+                                       ******* inversion H1. apply IHt1_2. apply H8. intro. admit.
+                          *****
 
 
-                              apply total_bst_sub_bst in H1. destruct H1 as (H3, H4). split.
-                                      ******* 
-  Search " >? ".
+                ** induction t1.
+                    *** simpl. split. apply Nat.ltb_lt in H'. apply H'. lia.
+                    *** simpl. 
+                        pose proof H1 as H3. pose proof H2 as H4. 
+                        apply IHt1 in H1. apply IHt2 in H2.
+                        apply total_bst_sub_bst in H3. destruct H3 as (H5, H6).
+                        destruct (k1 >? k) eqn:H7.
+                        **** simpl. split.
+                             ***** apply Nat.ltb_lt in H7. apply Nat.ltb_lt in H'. lia.
+        
 
-Nat.ltb_ge: forall x y : nat, (y >? x) = false <-> y <= x
-Nat.ltb_lt:
+
+
+apply total_bst_sub_bst in H1. destruct H1 as (H3, H4).
+
+
+
+
+                    *** discriminate.
+                    *** apply IHt1 in H1. apply IHt2 in H2. inversion H1.
+                        **** simpl. lia.
+                        **** simpl.
+
+
+                    *** simpl. lia.
+                    *** simpl. split.
+
+
+                 
                  ** admit.
                  ** apply IHt1. apply H1.
                  ** apply H2.
